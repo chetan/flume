@@ -47,12 +47,33 @@ public class FlumeSpecGen {
       return t.getChild(0).getText();
     case KWARG:
       return t.getChild(0).getText() + "=" + genArg((CommonTree) t.getChild(1));
+    case FUNC:
+      return genFunc(t);
     default:
       throw new FlumeSpecException("Not a node of literal type: "
           + t.toStringTree());
     }
   }
 
+  static String genFunc(CommonTree t) throws FlumeSpecException {
+    StringBuilder sb = new StringBuilder();
+    sb.append(t.getChild(0).getText());
+    sb.append("(");
+    boolean first = true;
+    for (int i=1; i<t.getChildCount(); i++) {
+      if (first) {
+        first = false;
+        sb.append(genArg((CommonTree)t.getChild(i)));
+        continue;
+      }
+      sb.append(", ");
+      sb.append(genArg((CommonTree)t.getChild(i)));
+    }
+    sb.append(")");
+    
+    return sb.toString();
+  }
+  
   static String genArgs(List<String> args, String pre, String delim, String post) {
     StringBuilder b = new StringBuilder();
     if (args.size() == 0)
