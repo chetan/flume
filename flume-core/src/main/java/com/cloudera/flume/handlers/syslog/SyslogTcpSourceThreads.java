@@ -17,6 +17,7 @@
  */
 package com.cloudera.flume.handlers.syslog;
 
+import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -128,7 +129,7 @@ public class SyslogTcpSourceThreads extends EventSource.Base {
     public void run() {
       try {
         // process this connection.
-        DataInputStream dis = new DataInputStream(in.getInputStream());
+        DataInputStream dis = new DataInputStream(new BufferedInputStream(in.getInputStream()));
         while (!closed) {
           try {
             Event e = SyslogWireExtractor.extractEvent(dis);
