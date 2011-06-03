@@ -326,6 +326,8 @@ public class FlumeNode implements Reportable {
         LOG.debug("Signalling LogicalNodeManager to stop()");
         nodesMan.stop();
     }
+    
+    this.stopping = false;
 
   }
 

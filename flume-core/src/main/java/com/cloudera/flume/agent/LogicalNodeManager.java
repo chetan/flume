@@ -194,32 +194,50 @@ public class LogicalNodeManager implements Reportable {
 
   }
 
+  /**
+   * Stops all LogicalNodes and blocks until they close
+   */
   public void stop() {
 
     Set<String> decoms = new HashSet<String>(threads.keySet()); // copy keyset
 
     if (decoms.isEmpty()) {
-      LOG.warn("went to stop() but no threads found");
+      LOG.debug("No LogicalNodes have been started");
+      return;
     }
 
+    // Stop each node
     for (String ln : decoms) {
       LOG.debug("Closing LogicalNode: " + ln);
 
-      LogicalNode node = threads.remove(ln);
+      LogicalNode node = threads.get(ln);
       if (node == null) {
         continue;
       }
       ReportManager.get().remove(node);
       try {
         node.close();
+
       } catch (IOException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
+        LOG.error("Error while stopping node (" +
+            node.getDriver().toString() + ")", e);
+
       } catch (InterruptedException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
+        LOG.warn("Error while stopping node (" +
+            node.getDriver().toString() + ")", e);
       }
 
+    }
+
+    // Wait for them all to stop
+    for (String ln : decoms) {
+      LogicalNode node = threads.remove(ln);
+      try {
+        node.getDriver().join();
+      } catch (InterruptedException e) {
+        LOG.warn("Interrupted while waiting for node to stop (" +
+            node.getDriver().toString() + ")", e);
+      }
     }
 
   }
