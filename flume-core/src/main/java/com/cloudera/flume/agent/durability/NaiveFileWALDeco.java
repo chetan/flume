@@ -164,6 +164,13 @@ public class NaiveFileWALDeco extends EventSinkDecorator<EventSink> {
       // if we fail during open before the driver is instantiated or started
       return;
     }
+    
+    if (FlumeNode.getInstance().isStopping()) {
+      LOG.debug("Interrupting the WAL driver since we are stopping");
+      walConsumerDriver.cancel(); // signal driver to finish
+      return;
+    }
+    
     try {
       int maxNoProgressTime = 10;
 

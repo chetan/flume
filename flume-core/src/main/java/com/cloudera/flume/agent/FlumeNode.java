@@ -116,6 +116,8 @@ public class FlumeNode implements Reportable {
   final String physicalNodeName;
 
   private final ChokeManager chokeMan;
+  
+  private boolean stopping;
 
   /**
    * A FlumeNode constructor with pluggable xxxManagers. This is used for
@@ -284,6 +286,8 @@ public class FlumeNode implements Reportable {
       chokeMan.setDaemon(true);
       chokeMan.start();
     }
+    
+    Runtime.getRuntime().addShutdownHook(new FlumeNodeShutdownHook(this));
 
   }
 
@@ -291,8 +295,12 @@ public class FlumeNode implements Reportable {
    * This also implements the Apache Commons Daemon interface's stop
    */
   synchronized public void stop() {
+    
+    this.stopping = true;
+    
     if (this.http != null) {
       try {
+        LOG.debug("Signalling HTTP Server to stop()");
         http.stop();
       } catch (Exception e) {
         LOG.error("Stopping http server failed: " + e);
@@ -300,15 +308,23 @@ public class FlumeNode implements Reportable {
     }
 
     if (reportPusher != null) {
+        LOG.debug("Signalling ReportPusher to stop()");
       reportPusher.stop();
     }
 
     if (liveMan != null) {
+        LOG.debug("Signalling LivenessManager to stop()");
       liveMan.stop();
     }
 
     if (chokeMan != null) {
+        LOG.debug("Signalling ChokeManager to stop()");
       chokeMan.halt();
+    }
+    
+    if (nodesMan != null) {
+        LOG.debug("Signalling LogicalNodeManager to stop()");
+        nodesMan.stop();
     }
 
   }
@@ -328,7 +344,8 @@ public class FlumeNode implements Reportable {
    * This also implements the Apache Commons Daemon interface's destroy
    */
   public void destroy() {
-    stop(); // I think this is ok.
+    // destroy() is called after stop() by the wrapper
+    // stop(); // I think this is ok.
   }
 
   /**
@@ -813,4 +830,9 @@ public class FlumeNode implements Reportable {
   public FlumeVMInfo getVMInfo() {
     return vmInfo;
   }
+
+    public boolean isStopping() {
+      return stopping;
+  }
+    
 }

@@ -193,4 +193,34 @@ public class LogicalNodeManager implements Reportable {
     }
 
   }
+
+  public void stop() {
+
+    Set<String> decoms = new HashSet<String>(threads.keySet()); // copy keyset
+
+    if (decoms.isEmpty()) {
+      LOG.warn("went to stop() but no threads found");
+    }
+
+    for (String ln : decoms) {
+      LOG.debug("Closing LogicalNode: " + ln);
+
+      LogicalNode node = threads.remove(ln);
+      if (node == null) {
+        continue;
+      }
+      ReportManager.get().remove(node);
+      try {
+        node.close();
+      } catch (IOException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } catch (InterruptedException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+
+    }
+
+  }
 }

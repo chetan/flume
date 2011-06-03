@@ -88,7 +88,7 @@ public class DirectDriver extends Driver {
         sink.open();
       } catch (Exception e) {
         // if open is interrupted or has an exception there was a problem.
-        LOG.error("Closing down due to exception on open calls");
+        LOG.error("Closing down due to exception on open calls", e);
         errorCleanup(PumperThread.this.getName(), e);
         return;
       }
@@ -110,9 +110,17 @@ public class DirectDriver extends Driver {
           sink.append(e);
           appendCount++;
         }
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Pumper thread stopped? " + stopped);
+        }
+
       } catch (Exception e1) {
         // Catches all exceptions or throwables. This is a separate thread
-        LOG.error("Closing down due to exception during append calls");
+        synchronized (stateSignal) {
+          state = DriverState.CLOSING;
+          stateSignal.notifyAll();
+        }
+        LOG.error("Closing down due to exception during append calls", e1);
         errorCleanup(PumperThread.this.getName(), e1);
         return;
       }
@@ -122,12 +130,20 @@ public class DirectDriver extends Driver {
           state = DriverState.CLOSING;
           stateSignal.notifyAll();
         }
-        source.close();
-        sink.close();
+
+        ensureClosed(PumperThread.this.getName());
+
       } catch (Exception e) {
-        LOG.error("Closing down due to exception during close calls");
-        errorCleanup(PumperThread.this.getName(), e);
-        return;
+        LOG.error("Error while closing source/sink", e);
+
+      } catch (Throwable t) {
+        LOG.error("Caught a throwable while closing source/sink", t);
+
+      }
+
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("finished run(" + source.getName() + "/" + sink.getName() + ")");
+        LOG.debug("final stats: nextCount=" + nextCount + "; appendCount=" + appendCount);
       }
 
       synchronized (stateSignal) {
@@ -145,6 +161,33 @@ public class DirectDriver extends Driver {
       } catch (InterruptedException e) {
         // TODO reconsider this.
         LOG.error("Driver interrupted attempting to close source", e);
+      }
+
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(source.getName() + "|" + sink.getName() + 
+            " -- " + "source has been closeed; attempting to drain it");
+      }
+      // Push events to sink until null or exception
+      long drainCount = 0;
+      long drainedCount = 0;
+      try {
+        Event e;
+        while ((e = source.next()) != null) {
+          nextCount++;
+          drainCount++;
+          sink.append(e);
+          appendCount++;
+          drainedCount++;
+        }
+
+      } catch (Throwable t) {
+        // Catches all exceptions or throwables. This is a separate thread
+        LOG.warn("Caught throwable while draining source (" + source.getName() + ")", t);
+      }
+      if (LOG.isInfoEnabled()) {
+        LOG.info(source.getName() + "|" + sink.getName() + 
+            " -- " + drainCount + " events were left; " + 
+            drainedCount + " events were drained successfully");
       }
 
       try {
