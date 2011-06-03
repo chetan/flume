@@ -102,6 +102,7 @@ public class SyslogTcpSourceThreads extends EventSource.Base {
 
         try {
           Socket client = mySock.accept();
+          client.setSoLinger(true, 60);
           new ReaderThread(client).start();
         } catch (IOException e) {
           if (!closed) {
@@ -120,6 +121,8 @@ public class SyslogTcpSourceThreads extends EventSource.Base {
   class ReaderThread extends Thread {
     Socket in;
 
+    long count;
+
     ReaderThread(Socket sock) {
       readers.add(this);
       this.in = sock;
@@ -127,32 +130,64 @@ public class SyslogTcpSourceThreads extends EventSource.Base {
 
     @Override
     public void run() {
+      DataInputStream dis = null;
       try {
         // process this connection.
-        DataInputStream dis = new DataInputStream(new BufferedInputStream(in.getInputStream()));
-        while (!closed) {
+        dis = new DataInputStream(new BufferedInputStream(in.getInputStream(), 64*1024));
+        while (true) {
           try {
             Event e = SyslogWireExtractor.extractEvent(dis);
             if (e == null)
               break;
+
             eventsQ.put(e);
+
+            if (LOG.isDebugEnabled()) {
+              count++;
+            }
+
+            if (closed && !in.isClosed()) {
+              // close the underlying stream, but try to read out the buffer
+              if (LOG.isDebugEnabled()) {
+                LOG.debug("Closing underlying SocketInputStream but continuing to read from buffer");
+                LOG.debug("syslog count: " + count);
+              }
+              in.close();
+            }
+
           } catch (EventExtractException ex) {
+            LOG.debug("Caught err", ex);
             rejects.incrementAndGet();
+            if (closed) {
+              break;
+            }
           }
         }
         // done.
         in.close();
 
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("syslog run() complete");
+          LOG.debug("syslog count: " + count);
+        }
+
       } catch (IOException e) {
         LOG.error("IOException with SyslogTcpSources", e);
       } catch (InterruptedException e1) {
-        LOG.error("put into Queue interupted" + e1);
+        LOG.error("put into Queue interupted", e1);
       } finally {
         if (in != null && in.isConnected()) {
           try {
             in.close();
           } catch (IOException e) {
-            e.printStackTrace();
+            LOG.debug("close failed", e);
+          }
+        }
+        if (dis != null) {
+          try {
+            dis.close();
+          } catch (IOException e) {
+            LOG.debug("close failed", e);
           }
         }
         readers.remove(this);
@@ -189,6 +224,9 @@ public class SyslogTcpSourceThreads extends EventSource.Base {
     } catch (InterruptedException e) {
       LOG.error("Reader threads interrupted, but we are closing", e);
     }
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Closed " + this + "; " + eventsQ.size() + " messages still in queue");
+    }
   };
 
   @Override
@@ -222,6 +260,8 @@ public class SyslogTcpSourceThreads extends EventSource.Base {
         try {
           sock = new ServerSocket(port);
           sock.setReuseAddress(true);
+          sock.setReceiveBufferSize(64*1024);
+
         } catch (IOException e) {
           throw new IOException("failed to create serversocket " + e);
         }
