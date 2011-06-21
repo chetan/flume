@@ -399,6 +399,7 @@ public class LogicalNode implements Reportable {
 
     // wait for driver thread to end.
 
+    // TODO remove static calls
     if (FlumeNode.getInstance().isStopping()) {
       int count = 5;
       while (count > 0) {
