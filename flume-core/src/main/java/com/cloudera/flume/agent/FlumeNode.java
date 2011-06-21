@@ -343,11 +343,10 @@ public class FlumeNode implements Reportable {
   }
 
   /**
-   * This also implements the Apache Commons Daemon interface's destroy
+   * This also implements the Apache Commons Daemon interface's destroy. It is called
+   * after the stop method.
    */
   public void destroy() {
-    // destroy() is called after stop() by the wrapper
-    // stop(); // I think this is ok.
   }
 
   /**
