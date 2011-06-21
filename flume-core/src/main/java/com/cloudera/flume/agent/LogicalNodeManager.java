@@ -199,18 +199,18 @@ public class LogicalNodeManager implements Reportable {
    */
   public void stop() {
 
-    Set<String> decoms = new HashSet<String>(threads.keySet()); // copy keyset
+    Map<String, LogicalNode> threadsCopy = new ConcurrentHashMap<String, LogicalNode>(threads);
 
-    if (decoms.isEmpty()) {
+    if (threadsCopy.isEmpty()) {
       LOG.debug("No LogicalNodes have been started");
       return;
     }
 
     // Stop each node
-    for (String ln : decoms) {
+    for (String ln : threadsCopy.keySet()) {
       LOG.debug("Closing LogicalNode: " + ln);
 
-      LogicalNode node = threads.get(ln);
+      LogicalNode node = threadsCopy.get(ln);
       if (node == null) {
         continue;
       }
@@ -230,8 +230,8 @@ public class LogicalNodeManager implements Reportable {
     }
 
     // Wait for them all to stop
-    for (String ln : decoms) {
-      LogicalNode node = threads.remove(ln);
+    for (String ln : threadsCopy.keySet()) {
+      LogicalNode node = threadsCopy.remove(ln);
       try {
         node.getDriver().join();
       } catch (InterruptedException e) {
