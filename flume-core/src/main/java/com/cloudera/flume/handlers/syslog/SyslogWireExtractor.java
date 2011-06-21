@@ -183,7 +183,9 @@ public class SyslogWireExtractor implements Extractor, SyslogConsts {
         }
       }
     } catch (EOFException e) {
-      LOG.warn("Caught EOF", e);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Caught EOF", e);
+      }
       switch (m) {
       case ERR:
         // end of stream but was in error state? Throw extraction exception
