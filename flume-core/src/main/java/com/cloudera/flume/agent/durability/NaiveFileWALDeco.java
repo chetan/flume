@@ -165,6 +165,7 @@ public class NaiveFileWALDeco extends EventSinkDecorator<EventSink> {
       return;
     }
     
+    // TODO remove static calls
     if (FlumeNode.getInstance().isStopping()) {
       LOG.debug("Interrupting the WAL driver since we are stopping");
       walConsumerDriver.cancel(); // signal driver to finish

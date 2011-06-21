@@ -85,6 +85,7 @@ public class SeqfileEventSource extends EventSource.Base {
     LOG.debug("opening SeqfileEventSource " + fname);
     Configuration conf = new Configuration();
     FileSystem fs = null;
+    // TODO remove static calls
     if (FlumeNode.getInstance().isStopping()) {
       LOG.debug("disabling cache since we are stopping");
       conf.set("fs.file.impl.disable.cache", "true");
