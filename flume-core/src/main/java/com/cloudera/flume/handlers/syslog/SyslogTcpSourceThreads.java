@@ -247,7 +247,9 @@ public class SyslogTcpSourceThreads extends EventSource.Base {
 
   @Override
   public void open() throws IOException {
-    LOG.info("Opening " + this);
+    if (LOG.isInfoEnabled()) {
+      LOG.info("Opening " + this + " on port " + port);
+    }
     synchronized (sockLock) {
       if (!closed) {
         throw new IOException("Attempted to double open socket");
@@ -263,7 +265,7 @@ public class SyslogTcpSourceThreads extends EventSource.Base {
           sock.setReceiveBufferSize(64*1024);
 
         } catch (IOException e) {
-          throw new IOException("failed to create serversocket " + e);
+          throw new IOException("Failed to create ServerSocket on port " + port + ": " + e);
         }
       }
     }
