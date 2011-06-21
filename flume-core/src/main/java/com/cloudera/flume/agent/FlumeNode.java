@@ -832,8 +832,8 @@ public class FlumeNode implements Reportable {
     return vmInfo;
   }
 
-    public boolean isStopping() {
-      return stopping;
+  synchronized public boolean isStopping() {
+    return stopping;
   }
     
 }
