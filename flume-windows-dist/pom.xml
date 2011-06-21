@@ -9,10 +9,12 @@
     <version>0.9.5-SNAPSHOT</version>
   </parent>
 
-  <artifactId>flume-distribution</artifactId>
+  <groupId>com.cloudera</groupId>
+  <artifactId>flume-windows-dist</artifactId>
   <packaging>pom</packaging>
-  <name>Flume Distribution Project</name>
-  <description>A module to handle all distribution packaging and assembly.</description>
+  <name>Flume Windows Distribution</name>
+  <description>A module to handle all distribution packaging and
+  assembly of a windows installer.</description>
 
   <build>
     <plugins>
@@ -34,6 +36,26 @@
                 <descriptor>src/main/assembly/dist.xml</descriptor>
               </descriptors>
             </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.6</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <configuration>
+              <target>
+                <property name="module">${project.artifactId}-${version}</property>
+                <property name="version">${version}</property>
+                <ant antfile="build.xml" target="windows" />
+              </target>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
           </execution>
         </executions>
       </plugin>
@@ -60,12 +82,6 @@
       <groupId>${project.parent.groupId}</groupId>
       <artifactId>flume-node-web</artifactId>
       <type>war</type>
-      <version>${project.parent.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>${project.parent.groupId}</groupId>
-      <artifactId>flume-docs</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
 
