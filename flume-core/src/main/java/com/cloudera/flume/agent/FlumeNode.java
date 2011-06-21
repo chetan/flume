@@ -832,7 +832,7 @@ public class FlumeNode implements Reportable {
     return vmInfo;
   }
 
-  synchronized public boolean isStopping() {
+  public boolean isStopping() {
     return stopping;
   }
     
