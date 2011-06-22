@@ -67,7 +67,7 @@ public class ThriftEventSink extends EventSink.Base {
   }
 
   public ThriftEventSink(String host, int port) {
-    this(host, port, true);
+    this(host, port, false);
   }
 
   @Override
@@ -103,7 +103,8 @@ public class ThriftEventSink extends EventSink.Base {
         transport = new TFastFramedTransport(stats);
 
       } else {
-        transport = new TSocket(host, port, timeout);
+    	LOG.info("creating TBufferedSocket to " + host);
+        transport = new TBufferedSocket(host, port, timeout);
         stats = new TStatsTransport(transport);
         transport = stats;
       }
