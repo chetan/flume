@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
+import org.apache.thrift.transport.TFastFramedTransport;
 import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
@@ -66,7 +67,7 @@ public class ThriftEventSink extends EventSink.Base {
   }
 
   public ThriftEventSink(String host, int port) {
-    this(host, port, false);
+    this(host, port, true);
   }
 
   @Override
@@ -99,7 +100,8 @@ public class ThriftEventSink extends EventSink.Base {
         // non blocking must use "Framed transport"
         transport = new TSocket(host, port, timeout);
         stats = new TStatsTransport(transport);
-        transport = new TFramedTransport(stats);
+        transport = new TFastFramedTransport(stats);
+
       } else {
         transport = new TSocket(host, port, timeout);
         stats = new TStatsTransport(transport);

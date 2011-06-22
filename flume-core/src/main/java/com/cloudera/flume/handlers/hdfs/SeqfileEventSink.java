@@ -68,6 +68,7 @@ public class SeqfileEventSink extends EventSink.Base {
     }
 
     Configuration conf = FlumeConfiguration.get();
+    LOG.info("creating writer with buffer io.file.buffer.size=" + conf.getInt("io.file.buffer.size", 4096));
     try {
       writer = FlushingSequenceFileWriter.createWriter(conf, f,
           WriteableEventKey.class, WriteableEvent.class);
