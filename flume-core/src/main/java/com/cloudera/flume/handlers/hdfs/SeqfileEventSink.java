@@ -22,8 +22,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.io.FlushingSequenceFileWriter;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.SequenceFile;
+import org.apache.hadoop.io.SequenceFile.CompressionType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,9 +70,15 @@ public class SeqfileEventSink extends EventSink.Base {
     }
 
     Configuration conf = FlumeConfiguration.get();
+    conf.setLong("io.file.buffer.size", 1024*64);
+    LOG.info("creating writer with buffer io.file.buffer.size=" + conf.getInt("io.file.buffer.size", 4096));
+    
+    FileSystem fs = FileSystem.getLocal(conf);
+
     try {
-      writer = FlushingSequenceFileWriter.createWriter(conf, f,
-          WriteableEventKey.class, WriteableEvent.class);
+			writer = SequenceFile.createWriter(fs, conf,
+					new Path(f.getAbsolutePath()), WriteableEventKey.class, WriteableEvent.class, CompressionType.NONE);
+
     } catch (FileNotFoundException fnfe) {
       LOG.error("Possible permissions problem when creating " + f, fnfe);
       throw fnfe;
