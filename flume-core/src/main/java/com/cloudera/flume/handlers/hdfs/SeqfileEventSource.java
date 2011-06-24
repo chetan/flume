@@ -84,7 +84,6 @@ public class SeqfileEventSource extends EventSource.Base {
   public void open() throws IOException {
     LOG.debug("opening SeqfileEventSource " + fname);
     Configuration conf = FlumeConfiguration.get();
-    conf.setLong("io.file.buffer.size", 4096*16); // 64k
     FileSystem fs = FileSystem.getLocal(conf);
     reader = new SequenceFile.Reader(fs, new Path(fname), conf);
   }
