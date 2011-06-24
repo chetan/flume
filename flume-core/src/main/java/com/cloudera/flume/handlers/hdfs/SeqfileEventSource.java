@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.cloudera.flume.conf.Context;
+import com.cloudera.flume.conf.FlumeConfiguration;
 import com.cloudera.flume.conf.SourceFactory.SourceBuilder;
 import com.cloudera.flume.core.Event;
 import com.cloudera.flume.core.EventSource;
@@ -82,7 +83,8 @@ public class SeqfileEventSource extends EventSource.Base {
   @Override
   public void open() throws IOException {
     LOG.debug("opening SeqfileEventSource " + fname);
-    Configuration conf = new Configuration();
+    Configuration conf = FlumeConfiguration.get();
+    conf.setLong("io.file.buffer.size", 4096*16); // 64k
     FileSystem fs = FileSystem.getLocal(conf);
     reader = new SequenceFile.Reader(fs, new Path(fname), conf);
   }
