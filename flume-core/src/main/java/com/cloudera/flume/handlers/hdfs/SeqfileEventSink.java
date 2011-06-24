@@ -24,6 +24,7 @@ import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.RawSequenceFileWriter;
 import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.SequenceFile.CompressionType;
 import org.slf4j.Logger;
@@ -82,8 +83,9 @@ public class SeqfileEventSink extends EventSink.Base {
     FileSystem fs = FileSystem.getLocal(conf);
 
     try {
-			writer = SequenceFile.createWriter(fs, conf,
-					new Path(f.getAbsolutePath()), WriteableEventKey.class, WriteableEvent.class, CompressionType.NONE);
+      writer = RawSequenceFileWriter.createWriter(fs, conf,
+          new Path(f.getAbsolutePath()), 
+          WriteableEventKey.class, WriteableEvent.class, CompressionType.NONE);
 
     } catch (FileNotFoundException fnfe) {
       LOG.error("Possible permissions problem when creating " + f, fnfe);
