@@ -63,7 +63,7 @@ public class RawSequenceFileWriter extends SequenceFile.Writer {
       Path name, Class keyClass, Class valClass, CompressionType compressionType) throws IOException {
     
     return new RawSequenceFileWriter(fs, conf, name, keyClass, valClass, 
-        fs.getConf().getInt("io.file.buffer.size", 16384),
+        fs.getConf().getInt("io.file.buffer.size", 65536),
         fs.getDefaultReplication(), fs.getDefaultBlockSize(), 
         null, new Metadata());
   }
