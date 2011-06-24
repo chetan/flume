@@ -72,8 +72,6 @@ public class SeqfileEventSink extends EventSink.Base {
     }
 
     Configuration conf = FlumeConfiguration.get();
-    conf.setLong("io.file.buffer.size", 1024*64);
-    LOG.info("creating writer with buffer io.file.buffer.size=" + conf.getInt("io.file.buffer.size", 4096));
     
     // TODO remove static calls
     if (FlumeNode.getInstance().isStopping()) {
