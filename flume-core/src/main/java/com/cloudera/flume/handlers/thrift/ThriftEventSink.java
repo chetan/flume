@@ -101,7 +101,8 @@ public class ThriftEventSink extends EventSink.Base {
         stats = new TStatsTransport(transport);
         transport = new TFramedTransport(stats);
       } else {
-        transport = new TSocket(host, port, timeout);
+    	LOG.info("creating TBufferedSocket to " + host);
+        transport = new TBufferedSocket(host, port, timeout);
         stats = new TStatsTransport(transport);
         transport = stats;
       }
