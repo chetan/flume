@@ -183,6 +183,9 @@ public class SyslogWireExtractor implements Extractor, SyslogConsts {
         }
       }
     } catch (EOFException e) {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Caught EOF", e);
+      }
       switch (m) {
       case ERR:
         // end of stream but was in error state? Throw extraction exception
@@ -195,8 +198,7 @@ public class SyslogWireExtractor implements Extractor, SyslogConsts {
         return null;
       }
     } catch (IOException e) {
-      throw new EventExtractException("Failed to extract syslog wire entry: "
-              + e.getMessage());
+      throw new EventExtractException("Failed to extract syslog wire entry", e);
     }
   }
 

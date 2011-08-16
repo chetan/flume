@@ -32,4 +32,8 @@ public class EventExtractException extends Exception {
     super(s);
   }
 
+  public EventExtractException(String message, Throwable cause) {
+    super(message, cause);
+  }
+
 }

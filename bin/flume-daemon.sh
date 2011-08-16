@@ -63,7 +63,7 @@ fi
 
 if [ "$FLUME_NICENESS" = "" ]; then
 	export FLUME_NICENESS=0
-fi 
+fi
 
 if [ "$FLUME_PID_DIR" = "" ]; then
   FLUME_PID_DIR=/var/run/flume
@@ -95,11 +95,11 @@ case $startStop in
     flume_rotate_log $log
     echo starting $command, logging to $log
     cd "$FLUME_HOME"
-    nohup  nice -n ${FLUME_NICENESS} "${FLUME_HOME}"/bin/flume $command "$@" > "$log" 2>&1 < /dev/null &
+    nohup  nice -n ${FLUME_NICENESS} "${FLUME_HOME}"/bin/flume $command -n $HOSTNAME "$@" > "$log" 2>&1 < /dev/null &
     echo $! > $pid
     sleep 1; head "$log"
     ;;
-          
+
   (stop)
 
     if [ -f $pid ]; then

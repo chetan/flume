@@ -26,6 +26,7 @@ import org.apache.hadoop.io.SequenceFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cloudera.flume.agent.FlumeNode;
 import com.cloudera.flume.conf.Context;
 import com.cloudera.flume.conf.SourceFactory.SourceBuilder;
 import com.cloudera.flume.core.Event;
@@ -83,7 +84,15 @@ public class SeqfileEventSource extends EventSource.Base {
   public void open() throws IOException {
     LOG.debug("opening SeqfileEventSource " + fname);
     Configuration conf = new Configuration();
-    FileSystem fs = FileSystem.getLocal(conf);
+    FileSystem fs = null;
+    // TODO remove static calls
+    if (FlumeNode.getInstance().isStopping()) {
+      LOG.debug("disabling cache since we are stopping");
+      conf.set("fs.file.impl.disable.cache", "true");
+      fs = FileSystem.getLocal(conf);
+    } else {
+      fs = FileSystem.getLocal(conf);
+    }
     reader = new SequenceFile.Reader(fs, new Path(fname), conf);
   }
 

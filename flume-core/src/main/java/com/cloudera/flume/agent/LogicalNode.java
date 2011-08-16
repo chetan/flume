@@ -387,22 +387,41 @@ public class LogicalNode implements Reportable {
    * This is a synchronous close operation for the logical node.
    */
   public void close() throws IOException, InterruptedException {
-    if (driver != null) {
-      // stop the existing connector.
-      nodeMsg = nodeName + "closing";
-      driver.stop();
-      // wait for driver thread to end.
-      boolean success = driver.waitForAtLeastState(DriverState.IDLE, 30000);
-      if (!success) {
-        try {
-          driver.cancel(); // signal driver to finish
-          driver.join();
-        } catch (InterruptedException e) {
-          LOG.error("Unexpected interruption when closing logical node");
-        }
-      }
+    if (driver == null) {
+      return;
     }
 
+    // stop the existing connector.
+    nodeMsg = nodeName + "closing";
+
+    // try to stop normally/cleanly
+    driver.stop();
+
+    // wait for driver thread to end.
+
+    // TODO remove static calls
+    if (FlumeNode.getInstance().isStopping()) {
+      int count = 5;
+      while (count > 0) {
+        if (driver.waitForAtLeastState(DriverState.CLOSING, 1000)) {
+          driver.join();
+          return;
+        }
+        count--;
+      }
+
+    } else if (driver.waitForAtLeastState(DriverState.IDLE, 30000)) {
+      return;
+    }
+
+    LOG.debug("Driver didn't return cleanly, going to interrupt thread");
+
+    try {
+      driver.cancel(); // signal driver to finish
+      driver.join();
+    } catch (InterruptedException e) {
+      LOG.error("Unexpected interruption when closing logical node");
+    }
   }
 
   /**
