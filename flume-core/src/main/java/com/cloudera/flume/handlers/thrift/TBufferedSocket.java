@@ -27,9 +27,9 @@ import org.apache.thrift.transport.TTransportException;
 /**
  * Simple wrapper around {@link TSocket} which adds buffering to the input and
  * output streams.
- * 
+ *
  * @author chetan
- * 
+ *
  */
 public class TBufferedSocket extends TSocket {
 

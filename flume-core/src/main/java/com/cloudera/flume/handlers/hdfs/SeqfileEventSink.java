@@ -30,6 +30,7 @@ import org.apache.hadoop.io.SequenceFile.CompressionType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cloudera.flume.agent.FlumeNode;
 import com.cloudera.flume.conf.Context;
 import com.cloudera.flume.conf.FlumeConfiguration;
 import com.cloudera.flume.conf.SinkFactory.SinkBuilder;
@@ -71,12 +72,12 @@ public class SeqfileEventSink extends EventSink.Base {
     }
 
     Configuration conf = FlumeConfiguration.get();
-    
+
     FileSystem fs = FileSystem.getLocal(conf);
 
     try {
       writer = RawSequenceFileWriter.createWriter(fs, conf,
-          new Path(f.getAbsolutePath()), 
+          new Path(f.getAbsolutePath()),
           WriteableEventKey.class, WriteableEvent.class, CompressionType.NONE);
 
     } catch (FileNotFoundException fnfe) {
@@ -87,7 +88,7 @@ public class SeqfileEventSink extends EventSink.Base {
 
   /**
    * @throws IOException
-   * 
+   *
    */
   public void close() throws IOException {
     LOG.debug("closing " + f);
